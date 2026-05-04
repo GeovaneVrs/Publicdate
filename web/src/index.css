@@ -7,10 +7,9 @@
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 min-h-screen;
+  @apply min-h-screen antialiased;
 }
 
-/* Scrollbar discreto */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgb(51 65 85) transparent;

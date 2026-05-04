@@ -13,11 +13,11 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/20 backdrop-blur-sm ${className}`}
+      className={`rounded-2xl border border-white/10 bg-[#1a1a26] p-6 shadow-lg shadow-black/30 ${className}`}
     >
       <div className="mb-4">
-        <h2 className="font-display text-xl font-semibold text-white">{title}</h2>
-        {subtitle ? <p className="mt-1 text-sm text-slate-400">{subtitle}</p> : null}
+        <h2 className="font-display text-xl font-semibold text-white/90">{title}</h2>
+        {subtitle ? <p className="mt-1 text-sm text-white/50">{subtitle}</p> : null}
       </div>
       {children}
     </section>
@@ -28,7 +28,7 @@ export function Spinner() {
   return (
     <div className="flex justify-center py-12">
       <div
-        className="h-10 w-10 animate-spin rounded-full border-2 border-sky-500/30 border-t-sky-400"
+        className="h-10 w-10 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-400"
         aria-hidden
       />
     </div>
