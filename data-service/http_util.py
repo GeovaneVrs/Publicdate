@@ -31,8 +31,15 @@ def _log_retry(retry_state: RetryCallState) -> None:
     reraise=True,
     before_sleep=_log_retry,
 )
-def get_json(url: str, *, timeout: float = 60.0) -> Any:
+DEFAULT_HEADERS: dict[str, str] = {
+    "User-Agent": "PublicdateDataPipeline/1.0 (cache JSON; +https://github.com/)",
+    "Accept": "application/json",
+}
+
+
+def get_json(url: str, *, timeout: float = 60.0, headers: dict[str, str] | None = None) -> Any:
+    merged = {**DEFAULT_HEADERS, **(headers or {})}
     with httpx.Client(timeout=timeout) as client:
-        r = client.get(url)
+        r = client.get(url, headers=merged)
         r.raise_for_status()
         return r.json()

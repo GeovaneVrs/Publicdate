@@ -62,6 +62,8 @@ python pipeline.py
 
 Isso cria/atualiza `data/cache/` (população, inflação, clima das cidades configuradas). Sem esse passo, rotas que dependem de cache podem responder **503**.
 
+**dados.gov.br (etapa `gov`):** a API CKAN `package_search` costuma responder **401** sem token Bearer. O pipeline grava `gov_catalogo_amostra.json` com `amostra: []` e metadados de indisponibilidade em vez de falhar. Para pular só essa etapa: `python pipeline.py --skip gov`. Se tiver credencial do portal, exporte `DADOS_GOV_BR_TOKEN` antes de rodar o pipeline.
+
 ### 2. API (TypeScript)
 
 Na pasta `api`:
