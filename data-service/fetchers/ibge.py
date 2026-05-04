@@ -1,29 +1,21 @@
-"""Coleta e normaliza dados de população por UF (IBGE)."""
+"""Coleta e normaliza dados do IBGE (UF, população, municípios)."""
 
 from __future__ import annotations
 
 from datetime import date
 
-import httpx
+import http_util
 
 ESTADOS_URL = "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
 METADADOS_6579_URL = "https://servicodados.ibge.gov.br/api/v3/agregados/6579/metadados"
-# Tabela 6579 — população residente estimada por UF (SIDRA); o ano precisa existir na API (2022 pode vir []).
 POP_TEMPLATE = (
     "https://servicodados.ibge.gov.br/api/v3/agregados/6579/periodos/{ano}"
     "/variaveis/9324?localidades=N3[all]"
 )
 
 
-def _get_json(url: str) -> object:
-    with httpx.Client(timeout=60.0) as client:
-        r = client.get(url)
-        r.raise_for_status()
-        return r.json()
-
-
 def _anos_candidatos_populacao() -> list[int]:
-    meta = _get_json(METADADOS_6579_URL)
+    meta = http_util.get_json(METADADOS_6579_URL)
     out: list[int] = []
     if isinstance(meta, dict):
         per = meta.get("periodicidade")
@@ -38,7 +30,7 @@ def _anos_candidatos_populacao() -> list[int]:
 
 def _populacao_por_uf() -> tuple[str, list[dict]]:
     for ano in _anos_candidatos_populacao():
-        pop_raw = _get_json(POP_TEMPLATE.format(ano=ano))
+        pop_raw = http_util.get_json(POP_TEMPLATE.format(ano=ano))
         if isinstance(pop_raw, list) and len(pop_raw) > 0:
             series = pop_raw[0]["resultados"][0]["series"]  # type: ignore[index]
             return str(ano), series
@@ -48,10 +40,8 @@ def _populacao_por_uf() -> tuple[str, list[dict]]:
 
 
 def fetch_estados_populacao() -> list[dict]:
-    """
-    Lista ordenada por sigla: nome, sigla, região e população (estimativa IBGE, tabela 6579).
-    """
-    estados_raw = _get_json(ESTADOS_URL)
+    """Lista ordenada por sigla: nome, sigla, região, população estimada (6579)."""
+    estados_raw = http_util.get_json(ESTADOS_URL)
     if not isinstance(estados_raw, list):
         raise ValueError("Resposta inesperada da API de estados")
 
@@ -82,4 +72,41 @@ def fetch_estados_populacao() -> list[dict]:
         )
 
     out.sort(key=lambda x: x["sigla"])
+    return out
+
+
+def _id_uf_por_sigla(sigla: str) -> str:
+    estados_raw = http_util.get_json(ESTADOS_URL)
+    if not isinstance(estados_raw, list):
+        raise ValueError("Resposta inesperada da API de estados")
+    sigla_u = sigla.strip().upper()
+    for e in estados_raw:
+        if e.get("sigla") == sigla_u:
+            return str(e["id"])
+    raise KeyError(f"UF desconhecida: {sigla}")
+
+
+def fetch_municipios_por_uf(sigla: str) -> list[dict]:
+    """
+    Municípios de uma UF (id, nome, microrregião simplificada).
+    Volume pode ser grande; use uma UF por vez no pipeline.
+    """
+    uf_id = _id_uf_por_sigla(sigla)
+    url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf_id}/municipios"
+    rows = http_util.get_json(url)
+    if not isinstance(rows, list):
+        raise ValueError("Resposta inesperada da API de municípios")
+    out: list[dict] = []
+    for m in rows:
+        micro = m.get("microrregiao") or {}
+        meso = micro.get("mesorregiao") or {}
+        out.append(
+            {
+                "id": str(m["id"]),
+                "nome": m["nome"],
+                "microrregiao": micro.get("nome"),
+                "mesorregiao": meso.get("nome"),
+            }
+        )
+    out.sort(key=lambda x: x["nome"])
     return out

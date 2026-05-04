@@ -22,8 +22,10 @@ build/
 
 # Node / TypeScript
 api/node_modules/
+web/node_modules/
 node_modules/
 api/dist/
+web/dist/
 *.tsbuildinfo
 
 # Logs e runtime

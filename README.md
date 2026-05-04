@@ -35,6 +35,8 @@ flowchart LR
 
 Fluxo resumido: o Python consulta as APIs, normaliza e grava arquivos em `data/cache/`. A API lê esses arquivos e responde em JSON (ou em HTML legível no navegador).
 
+**Python:** recomendado **3.11 ou 3.12** (ecossistema com mais wheels prontos). Em **3.14** no Windows, evitamos **Pydantic** porque `pydantic-core` costuma exigir compilação (Rust + MSVC / `link.exe`). A validação no pipeline usa apenas a biblioteca padrão + `httpx` / `tenacity`.
+
 ## Fontes de dados
 
 | Dado | Fonte |
@@ -69,7 +71,7 @@ npm install
 npm run dev
 ```
 
-Padrão: `http://127.0.0.1:3000`. Variáveis opcionais: `PORT`, `HOST`.
+Padrão: `http://127.0.0.1:3000`. Variáveis opcionais: `PORT`, `HOST`, `DATA_CACHE_DIR`, `CORS_ORIGINS` (veja [.env.example](./.env.example)).
 
 ### Build de produção
 
@@ -77,15 +79,42 @@ Padrão: `http://127.0.0.1:3000`. Variáveis opcionais: `PORT`, `HOST`.
 cd api && npm run build && npm start
 ```
 
+### 3. Interface web (React + Tailwind)
+
+Na pasta `web` (com a API já rodando na porta 3000):
+
+```bash
+npm install
+npm run dev
+```
+
+Abre em `http://localhost:5173`. O Vite **proxifica** `/api/*` para `http://127.0.0.1:3000/*`, evitando CORS em desenvolvimento. A API aceita também origens `5173`/`4173` via `@fastify/cors`.
+
+Build estático do front:
+
+```bash
+cd web && npm run build && npm run preview
+```
+
+Para apontar o front buildado para uma API remota, defina `VITE_API_URL` (sem barra no final) e inclua a origem do front em `CORS_ORIGINS` na API.
+
 ## Rotas úteis
+
+Lista completa e arquivos em cache: **GET `/catalogo`**. Documentação interativa: **GET `/docs`**.
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/` | Índice (HTML no navegador; JSON com `?format=json`) |
 | GET | `/health` | Saúde do serviço |
+| GET | `/catalogo` | Rotas + lista de JSON no cache |
 | GET | `/populacao/estados` | UFs com população estimada (IBGE) |
-| GET | `/inflacao` | Série IPCA mensal (BCB) |
-| GET | `/clima/:cidade` | Clima se existir `clima_<slug>.json` no cache |
+| GET | `/populacao/municipios/:uf` | Municípios (arquivo `municipios_<uf>.json`) |
+| GET | `/inflacao` | IPCA (paginação `?limit=&offset=`) |
+| GET | `/economia/selic` | Selic (SGS 11) |
+| GET | `/economia/cambio` | Câmbio USD (SGS 1) |
+| GET | `/clima/:cidade` | Clima atual |
+| GET | `/clima/:cidade/previsao` | Previsão 7 dias |
+| GET | `/dados/gov-catalogo-amostra` | Amostra CKAN dados.gov.br |
 
 No **navegador**, as respostas de dados usam página escura com JSON formatado. Para **JSON puro**: acrescente `?format=json` na URL.
 

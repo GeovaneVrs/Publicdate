@@ -111,12 +111,18 @@ export function renderIndexHtmlPage(): string {
 </head>
 <body>
   <h1>Dados públicos BR</h1>
-  <p>Abra as rotas abaixo no navegador — a resposta vem em página escura legível. Para JSON puro, use <code>?format=json</code>.</p>
+  <p>Abra as rotas abaixo no navegador — a resposta vem em página escura legível. Para JSON puro, use <code>?format=json</code>. Documentação interativa: <a href="/docs">/docs</a>.</p>
   <ul>
+    <li><a href="/catalogo">/catalogo</a> — arquivos em cache e lista de rotas</li>
     <li><a href="/health">/health</a></li>
     <li><a href="/populacao/estados">/populacao/estados</a></li>
-    <li><a href="/inflacao">/inflacao</a></li>
+    <li><a href="/populacao/municipios/pe">/populacao/municipios/pe</a> (ajuste a UF após rodar o pipeline)</li>
+    <li><a href="/inflacao">/inflacao</a> — paginação: <code>?limit=12&amp;offset=0</code></li>
+    <li><a href="/economia/selic">/economia/selic</a></li>
+    <li><a href="/economia/cambio">/economia/cambio</a></li>
     <li><a href="/clima/recife">/clima/recife</a></li>
+    <li><a href="/clima/recife/previsao">/clima/recife/previsao</a></li>
+    <li><a href="/dados/gov-catalogo-amostra">/dados/gov-catalogo-amostra</a></li>
   </ul>
 </body>
 </html>`;
